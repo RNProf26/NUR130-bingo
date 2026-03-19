@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NUR130 Student Bingo</title>
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --accent:#2563eb;
+      --marked:#dcfce7;
+      --free:#dbeafe;
+      --win:#fef3c7;
+      --border:#d1d5db;
+      --danger:#b91c1c;
+      --soft:#eef2ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:16px;
+    }
+    .hero{
+      background:linear-gradient(135deg,#eff6ff,#f8fafc);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+      margin-bottom:16px;
+      box-shadow:0 8px 24px rgba(0,0,0,.05);
+    }
+    h1{
+      margin:0 0 8px 0;
+      font-size:1.8rem;
+    }
+    .sub{
+      color:var(--muted);
+      margin:0;
+      line-height:1.45;
+    }
+    .panel{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 8px 24px rgba(0,0,0,.04);
+    }
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .field label{
+      display:block;
+      font-size:.9rem;
+      margin-bottom:6px;
+      color:var(--muted);
+      font-weight:bold;
+    }
+    input{
+      width:100%;
+      padding:12px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      font-size:1rem;
+    }
+    .btns{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:14px 0 8px;
+    }
+    button{
+      border:none;
+      border-radius:12px;
+      padding:11px 14px;
+      font-size:.95rem;
+      cursor:pointer;
+      background:var(--accent);
+      color:white;
+      font-weight:bold;
+    }
+    button.secondary{ background:#e5e7eb; color:var(--ink); }
+    button.danger{ background:var(--danger); }
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      margin:14px 0;
+    }
+    .stat{
+      background:#f9fafb;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      text-align:center;
+    }
+    .stat .label{
+      color:var(--muted);
+      font-size:.82rem;
+      margin-bottom:4px;
+    }
+    .stat .value{
+      font-size:1.15rem;
+      font-weight:bold;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:8px;
+      margin-top:12px;
+    }
+    .cell{
+      min-height:86px;
+      background:white;
+      border:2px solid var(--border);
+      border-radius:14px;
+      padding:8px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      font-size:.86rem;
+      line-height:1.2;
+      user-select:none;
+      cursor:pointer;
+      transition:transform .08s ease, background .15s ease, border-color .15s ease;
+    }
+    .cell:active{ transform:scale(.98); }
+    .cell.marked{
+      background:var(--marked);
+      border-color:#16a34a;
+      font-weight:bold;
+    }
+    .cell.free{
+      background:var(--free);
+      border-color:var(--accent);
+      font-weight:bold;
+    }
+    .cell.win{
+      background:var(--win) !important;
+      border-color:#d97706 !important;
+    }
+    .badge{
+      display:inline-block;
+      padding:5px 9px;
+      border-radius:999px;
+      background:var(--soft);
+      color:#3730a3;
+      font-size:.8rem;
+      font-weight:bold;
+      margin-right:6px;
+      margin-bottom:6px;
+    }
+    .alert{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:12px;
+      display:none;
+      font-weight:bold;
+      background:#ecfccb;
+      border:1px solid #84cc16;
+      color:#3f6212;
+    }
+    .leaderboard table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:8px;
+    }
+    .leaderboard th, .leaderboard td{
+      text-align:left;
+      padding:9px 8px;
+      border-bottom:1px solid #e5e7eb;
+      font-size:.92rem;
+    }
+    .leaderboard th{ color:var(--muted); }
+    .mini{
+      color:var(--muted);
+      font-size:.9rem;
+      line-height:1.4;
+    }
+    .footer-note{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>NUR130 Student Bingo</h1>
+      <p class="sub">Student version for live lecture use. Tap squares as your instructor calls clues. This version has no clue controls and no answer display.</p>
+    </div>
+
+    <div class="panel">
+      <div class="controls">
+        <div class="field">
+          <label for="playerName">Student or Team Name</label>
+          <input id="playerName" type="text" placeholder="Enter name" />
+        </div>
+      </div>
+
+      <div>
+        <span class="badge">Student-Safe</span>
+        <span class="badge">Auto Bingo</span>
+        <span class="badge">Mobile Friendly</span>
+      </div>
+
+      <div class="btns">
+        <button onclick="newGame()">New Card</button>
+        <button class="secondary" onclick="resetMarks()">Reset Marks</button>
+        <button onclick="saveScore()">Save to Leaderboard</button>
+        <button class="danger" onclick="clearLeaderboard()">Clear Leaderboard</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="label">Time</div>
+          <div class="value" id="timer">00:00</div>
+        </div>
+        <div class="stat">
+          <div class="label">Marked</div>
+          <div class="value" id="markedCount">1</div>
+        </div>
+        <div class="stat">
+          <div class="label">Bingo Lines</div>
+          <div class="value" id="bingoCount">0</div>
+        </div>
+      </div>
+
+      <div id="bingoAlert" class="alert">BINGO! Show your screen to your instructor.</div>
+      <div id="grid" class="grid"></div>
+      <div class="footer-note">Use this board while your instructor presents clues from the lecture slides.</div>
+
+      <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;" />
+
+      <h2 style="margin:0 0 8px;">Leaderboard</h2>
+      <p class="mini">Scores save only on this phone or browser. This version does not display or generate clues.</p>
+      <div class="leaderboard">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Time</th>
+              <th>Lines</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const terms = [
+      "Anterior fontanel",
+      "Posterior fontanel",
+      "Trust vs. mistrust",
+      "Rear-facing car seat",
+      "Iron-fortified cereal",
+      "Tripod sitting",
+      "Rolling milestone",
+      "Pincer grasp",
+      "Walking independently",
+      "Cup and spoon feeding",
+      "No juice at bedtime",
+      "Normal stool variation",
+      "Report red/white stool",
+      "Family-centered care",
+      "Open communication",
+      "Constructive conflict",
+      "Caregiver role strain",
+      "Dysfunctional family processes",
+      "Eye-level communication",
+      "Empathy",
+      "Ethnocentrism",
+      "Consistent discipline",
+      "Teach social functioning",
+      "Weight loss percent"
+    ];
+
+    let board = [];
+    let marked = [];
+    let timer = 0;
+    let timerHandle = null;
+    let gameWon = false;
+    let currentWinningLines = [];
+
+    const winningPatterns = [
+      [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
+      [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
+      [0,6,12,18,24],[4,8,12,16,20]
+    ];
+
+    function shuffle(arr){
+      const copy = [...arr];
+      for(let i=copy.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [copy[i],copy[j]] = [copy[j],copy[i]];
+      }
+      return copy;
+    }
+
+    function formatTime(seconds){
+      const m = String(Math.floor(seconds/60)).padStart(2,'0');
+      const s = String(seconds%60).padStart(2,'0');
+      return `${m}:${s}`;
+    }
+
+    function startTimer(){
+      if(timerHandle) clearInterval(timerHandle);
+      timerHandle = setInterval(() => {
+        timer += 1;
+        document.getElementById("timer").textContent = formatTime(timer);
+      }, 1000);
+    }
+
+    function stopTimer(){
+      if(timerHandle) clearInterval(timerHandle);
+      timerHandle = null;
+    }
+
+    function buildBoard(){
+      const selected = shuffle(terms).slice(0,24);
+      const result = [];
+      let idx = 0;
+      for(let i=0;i<25;i++){
+        if(i===12){
+          result.push("FREE");
+        } else {
+          result.push(selected[idx]);
+          idx++;
+        }
+      }
+      return result;
+    }
+
+    function renderBoard(){
+      const grid = document.getElementById("grid");
+      grid.innerHTML = "";
+      board.forEach((item, idx) => {
+        const div = document.createElement("div");
+        div.className = "cell";
+        if(idx === 12) div.classList.add("free");
+        if(marked[idx]) div.classList.add("marked");
+        if(currentWinningLines.flat().includes(idx)) div.classList.add("win");
+        div.textContent = item;
+        div.addEventListener("click", () => toggleCell(idx));
+        grid.appendChild(div);
+      });
+      updateStats();
+    }
+
+    function toggleCell(index){
+      if(index === 12) return;
+      marked[index] = !marked[index];
+      evaluateBoard();
+      renderBoard();
+    }
+
+    function getWinningLines(){
+      return winningPatterns.filter(pattern => pattern.every(i => marked[i]));
+    }
+
+    function evaluateBoard(){
+      currentWinningLines = getWinningLines();
+      const alert = document.getElementById("bingoAlert");
+      if(currentWinningLines.length > 0){
+        if(!gameWon){
+          gameWon = true;
+          stopTimer();
+        }
+        alert.style.display = "block";
+      } else {
+        gameWon = false;
+        alert.style.display = "none";
+      }
+    }
+
+    function updateStats(){
+      document.getElementById("markedCount").textContent = marked.filter(Boolean).length;
+      document.getElementById("bingoCount").textContent = currentWinningLines.length;
+    }
+
+    function newGame(){
+      timer = 0;
+      document.getElementById("timer").textContent = "00:00";
+      gameWon = false;
+      currentWinningLines = [];
+      board = buildBoard();
+      marked = Array(25).fill(false);
+      marked[12] = true;
+      document.getElementById("bingoAlert").style.display = "none";
+      renderBoard();
+      startTimer();
+    }
+
+    function resetMarks(){
+      marked = Array(25).fill(false);
+      marked[12] = true;
+      timer = 0;
+      document.getElementById("timer").textContent = "00:00";
+      gameWon = false;
+      currentWinningLines = [];
+      document.getElementById("bingoAlert").style.display = "none";
+      renderBoard();
+      startTimer();
+    }
+
+    function saveScore(){
+      const nameInput = document.getElementById("playerName");
+      const name = nameInput.value.trim() || "Anonymous";
+      const lines = currentWinningLines.length;
+      if(lines === 0){
+        alert("No bingo line yet. Keep playing.");
+        return;
+      }
+      const entry = {
+        name,
+        time: timer,
+        timeLabel: formatTime(timer),
+        lines,
+        savedAt: Date.now()
+      };
+      const scores = JSON.parse(localStorage.getItem("nur130_student_bingo_scores") || "[]");
+      scores.push(entry);
+      scores.sort((a,b) => a.time - b.time || b.lines - a.lines || a.savedAt - b.savedAt);
+      localStorage.setItem("nur130_student_bingo_scores", JSON.stringify(scores.slice(0,20)));
+      renderLeaderboard();
+      alert("Score saved on this device.");
+    }
+
+    function renderLeaderboard(){
+      const body = document.getElementById("leaderboardBody");
+      const scores = JSON.parse(localStorage.getItem("nur130_student_bingo_scores") || "[]");
+      body.innerHTML = "";
+      if(scores.length === 0){
+        body.innerHTML = '<tr><td colspan="4" class="mini">No scores saved yet.</td></tr>';
+        return;
+      }
+      scores.forEach((score, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i+1}</td>
+          <td>${escapeHtml(score.name)}</td>
+          <td>${score.timeLabel}</td>
+          <td>${score.lines}</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    function clearLeaderboard(){
+      localStorage.removeItem("nur130_student_bingo_scores");
+      renderLeaderboard();
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    renderLeaderboard();
+    newGame();
+  </script>
+</body>
+</html>
